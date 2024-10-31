@@ -1,0 +1,103 @@
+// Nome: [Mathias Gabriel Schneider Steffen]
+// Código em Kotlin para backend de RPG simples
+
+import kotlin.random.Random
+
+// Classe enum para definir tipos de personagens
+enum class PersonagemType(val descricao: String) {
+    REI("Rei do Reino"),
+    MAGO("Mago da Caverna"),
+    CAVALEIRO("Cavaleiro do Reino"),
+    DRAGAO("Dragão Selvagem")
+}
+
+// Classe base para todos os personagens
+open class Personagem(
+    val nome: String,
+    val tipo: PersonagemType,
+    var hp: Int,
+    var ataque: Int
+) {
+    open fun atacar(oponente: Personagem) {
+        oponente.hp -= ataque
+        println("$nome atacou ${oponente.nome} e causou $ataque de dano! (HP de ${oponente.nome} agora é ${oponente.hp})")
+    }
+}
+
+// Subclasses dos personagens específicos
+class Rei : Personagem("Rei", PersonagemType.REI, 30, 7)
+
+class Mago : Personagem("Mago", PersonagemType.MAGO, 21, 12)
+
+class Cavaleiro : Personagem("Cavaleiro", PersonagemType.CAVALEIRO, 25, 5) {
+    fun defender(dano: Int): Int {
+        val danoReduzido = if (dano > 6) dano - 6 else 0
+        println("$nome defendeu $dano e reduziu para $danoReduzido")
+        return danoReduzido
+    }
+}
+
+class Dragao : Personagem("Dragão", PersonagemType.DRAGAO, 50, 30)
+
+// Função para aplicar um power-up
+fun aplicarPowerUp(personagem: Personagem, opcao: Int) {
+    when (opcao) {
+        1 -> personagem.hp += 50.also { println("Power-up: +50 HP aplicado a ${personagem.nome}. HP atual: ${personagem.hp}") }
+        2 -> personagem.ataque += 20.also { println("Power-up: +20 Ataque aplicado a ${personagem.nome}. Ataque atual: ${personagem.ataque}") }
+        else -> println("Opção de power-up inválida")
+    }
+}
+
+// Função de batalha entre dois personagens
+fun batalha(personagem1: Personagem, personagem2: Personagem) {
+    println("Início da batalha entre ${personagem1.nome} e ${personagem2.nome}!")
+    while (personagem1.hp > 0 && personagem2.hp > 0) {
+        personagem1.atacar(personagem2)
+        if (personagem2.hp > 0) {
+            personagem2.atacar(personagem1)
+        }
+    }
+    val vencedor = if (personagem1.hp > 0) personagem1 else personagem2
+    println("A batalha terminou! Vencedor: ${vencedor.nome}")
+    vencedor.hp += 5
+    vencedor.ataque += 5
+    println("${vencedor.nome} recebe +5 de HP e +5 de Ataque. HP: ${vencedor.hp}, Ataque: ${vencedor.ataque}")
+}
+
+// Função principal
+fun main() {
+    println("Escolha seu personagem: 1) Rei  2) Mago  3) Cavaleiro")
+    val escolha = readLine()?.toIntOrNull() ?: 1
+    val personagemEscolhido: Personagem = when (escolha) {
+        1 -> Rei().apply { println("Você escolheu o Rei! HP: $hp, Ataque: $ataque") }
+        2 -> Mago().apply { println("Você escolheu o Mago! HP: $hp, Ataque: $ataque") }
+        3 -> Cavaleiro().apply { println("Você escolheu o Cavaleiro! HP: $hp, Ataque: $ataque") }
+        else -> Rei()
+    }
+
+    println("Escolha um power-up antes da batalha contra o dragão: 1) +50 HP  2) +20 Ataque")
+    val powerUpEscolha = readLine()?.toIntOrNull() ?: 1
+    aplicarPowerUp(personagemEscolhido, powerUpEscolha)
+
+    println("Iniciando a história...")
+    val reinoPersonagem = personagemEscolhido.tipo == PersonagemType.REI || personagemEscolhido.tipo == PersonagemType.CAVALEIRO
+    if (reinoPersonagem) {
+        val oponente = if (personagemEscolhido.tipo == PersonagemType.REI) Cavaleiro() else Rei()
+        println("Primeira batalha: ${personagemEscolhido.nome} contra ${oponente.nome}")
+        batalha(personagemEscolhido, oponente)
+    } else {
+        val oponente = if (Random.nextBoolean()) Cavaleiro() else Rei()
+        println("Primeira batalha: ${personagemEscolhido.nome} encontrou ${oponente.nome} na entrada do reino")
+        batalha(personagemEscolhido, oponente)
+    }
+
+    if (personagemEscolhido.hp > 0) {
+        val dragao = Dragao()
+        println("Última batalha contra o Dragão!")
+        batalha(personagemEscolhido, dragao)
+    } else {
+        println("${personagemEscolhido.nome} foi derrotado antes de chegar ao Dragão.")
+    }
+
+    println("Fim de jogo. Obrigado por jogar!")
+}
